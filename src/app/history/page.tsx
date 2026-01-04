@@ -33,7 +33,8 @@ export default function HistoryPage() {
   if (loading) return <LoadingScreen />
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
+    // הוספתי גם כאן את slide-in-from-bottom-4
+    <div className="p-8 max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
       <h1 className="text-3xl font-bold mb-6">Analysis History</h1>
       <div className="grid gap-6">
         {history.length === 0 && <p>No saved analyses yet.</p>}

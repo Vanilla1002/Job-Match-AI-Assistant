@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Save, Loader2 } from 'lucide-react'
+import { Save, Loader2, CheckCircle2 } from 'lucide-react'
 import { LoadingScreen } from '@/components/LoadingScreen'
 import { toast } from "sonner" 
 
@@ -41,38 +41,50 @@ export default function ProfilePage() {
   }, [router])
 
   const handleSave = async () => {
-    if (!resumeText) {
+    if (!resumeText.trim()) {
         toast.error("Cannot save empty resume")
         return
     }
 
     setSaving(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-
-    const { error } = await supabase.from('profiles').upsert({
-      id: user.id,
-      resume_text: resumeText,
-      updated_at: new Date()
-    })
     
-    setSaving(false)
+    try {
+      const response = await fetch('/api/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resumeText })
+      })
 
-    if (error) {
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to update profile')
+      }
+
+      setLastUpdated(new Date().toISOString())
+      toast.success("Profile Updated!", {
+          description: "Your resume has been analyzed and saved securely."
+      })
+      
+    } catch (error: any) {
         toast.error("Save Failed", { description: error.message })
-    } else {
-        setLastUpdated(new Date().toISOString())
-        toast.success("Profile Updated!", {
-            description: "Your resume has been saved securely."
-        })
+    } finally {
+        setSaving(false)
     }
   }
 
   if (loading) return <LoadingScreen />
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">My Profile</h1>
+    <div className="p-8 max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-3xl font-bold">My Profile</h1>
+        {lastUpdated && (
+           <div className="flex items-center gap-2 text-sm text-green-600 bg-green-100 px-3 py-1 rounded-full border border-green-200">
+             <CheckCircle2 size={14} />
+             <span>AI Analysis Ready</span>
+           </div>
+        )}
+      </div>
       
       <Card>
         <CardHeader>
@@ -80,7 +92,7 @@ export default function ProfilePage() {
           <CardDescription>
             {lastUpdated 
               ? `Last updated: ${new Date(lastUpdated).toLocaleString()}`
-              : 'You haven\'t uploaded a resume yet'}
+              : 'Paste your resume text here. Our AI will analyze it for future matches.'}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -88,11 +100,19 @@ export default function ProfilePage() {
             value={resumeText}
             onChange={(e) => setResumeText(e.target.value)}
             className="min-h-[400px] font-mono p-4"
-            placeholder="Paste the full text from your resume file here..."
+            placeholder="Experience&#10;Software Engineer...&#10;&#10;Education&#10;B.Sc Computer Science..."
           />
           <div className="flex justify-end">
-            <Button onClick={handleSave} disabled={saving} className="w-32">
-              {saving ? <Loader2 className="animate-spin" /> : <><Save className="mr-2 h-4 w-4"/> Save</>}
+            <Button 
+              onClick={handleSave} 
+              disabled={saving} 
+              className="w-40"
+            >
+              {saving ? (
+                <><Loader2 className="animate-spin mr-2 h-4 w-4" /> Analyzing...</>
+              ) : (
+                <><Save className="mr-2 h-4 w-4"/> Save & Analyze</>
+              )}
             </Button>
           </div>
         </CardContent>
