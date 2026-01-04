@@ -15,13 +15,18 @@ import { toast } from "sonner"
 
 export default function Dashboard() {
   const router = useRouter()
-  const [resumeData, setResumeData] = useState<{text: string, date: string} | null>(null)
+  // --- לוגיקה חדשה: משתנים ---
+  const [hasResume, setHasResume] = useState(false)
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null)
+  
   const [jobTitle, setJobTitle] = useState('')
   const [description, setDescription] = useState('')
   const [isAnalyzing, setIsAnalyzing] = useState(false)
+  
   const [currentResult, setCurrentResult] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 
+  // --- לוגיקה חדשה: useEffect ---
   useEffect(() => {
     const checkProfile = async () => {
       const { data: { user } } = await supabase.auth.getUser()
@@ -30,23 +35,25 @@ export default function Dashboard() {
         return
       }
 
+      // בדיקה יעילה: האם קיים מידע, ללא משיכת הטקסט המלא
       const { data } = await supabase
         .from('profiles')
-        .select('resume_text, updated_at')
+        .select('updated_at, resume_data') 
         .eq('id', user.id)
         .single()
 
-      if (data && data.resume_text) {
-        setResumeData({ text: data.resume_text, date: data.updated_at })
+      if (data && data.resume_data) {
+        setHasResume(true)
+        setLastUpdated(data.updated_at)
       }
       setLoading(false)
     }
     checkProfile()
   }, [router])
 
+  // --- New logic: handleAnalyze ---
   const handleAnalyze = async () => {
-    // החלפנו את ה-alert הפשוט ב-Toast אדום ויפה
-    if (!resumeData) {
+    if (!hasResume) {
       toast.error("Missing Resume", {
         description: "You must upload a resume in your profile first."
       })
@@ -66,36 +73,41 @@ export default function Dashboard() {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       
-      const response = await fetch('/api/analyze', {
+      // שליחה ל-API החדש (ללא קורות החיים בגוף הבקשה)
+      const response = await fetch('/api/analysis', {
         method: 'POST',
-        body: JSON.stringify({ resume: resumeData.text, jobDescription: description })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobDescription: description }) 
       })
       
       const aiResult = await response.json()
       if (aiResult.error) throw new Error(aiResult.error)
 
-      const { data } = await supabase
+      // שמירת התוצאה ב-Supabase לפי המבנה החדש
+      const { data, error } = await supabase
         .from('job_analyses')
         .insert({
           user_id: user?.id,
           job_title: jobTitle,
           job_description: description,
-          match_score: aiResult.match_score,
-          missing_keywords: aiResult.missing_keywords,
-          tailored_summary: aiResult.tailored_summary
+          match_score: aiResult.match_percentage,
+          missing_keywords: aiResult.gap_analysis.critical_missing_skills,
+          tailored_summary: aiResult.detailed_feedback
         })
         .select()
         .single()
 
+      if (error) throw error
+
       if (data) {
         setCurrentResult(data)
-        // הודעת הצלחה ירוקה
         toast.success("Analysis Complete!", {
           description: `Matched ${data.match_score}% with the job.`
         })
       }
 
     } catch (err: any) {
+      console.error(err)
       toast.error("Analysis Failed", {
         description: err.message || "Something went wrong. Please try again."
       })
@@ -113,20 +125,24 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-8">
+    // הוספתי את ה-animate-in שביקשת לשמור, אבל בתוך העיצוב הבהיר
+    <div className="p-8 max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500">
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">New Job Analysis</h1>
+          {/* חזרה לצבעי טקסט רגילים (שחור/אפור) */}
+          <h1 className="text-3xl font-bold text-slate-900">New Job Analysis</h1>
           <p className="text-slate-500 mt-1">Paste job details and get instant match</p>
         </div>
         
-        <div className="bg-white dark:bg-slate-800 p-3 rounded-lg border shadow-sm text-sm">
-          {resumeData ? (
+        {/* חזרה לרקע לבן עבור הסטטוס */}
+        <div className="bg-white p-3 rounded-lg border shadow-sm text-sm">
+          {hasResume ? (
             <div className="text-green-600 flex items-center gap-2">
+              {/* השארתי פה אנימציה עדינה (pulse) במקום ה-ping הדרמטי, כדי להתאים לעיצוב הנקי */}
               <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"/>
               <div>
-                <div className="font-bold">Resume Updated</div>
-                <div className="text-xs text-slate-500">Updated: {new Date(resumeData.date).toLocaleString()}</div>
+                <div className="font-bold">Resume Active</div>
+                <div className="text-xs text-slate-500">Last updated: {new Date(lastUpdated!).toLocaleDateString()}</div>
               </div>
             </div>
           ) : (
@@ -141,19 +157,22 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <Card className="shadow-md">
+      {/* כרטיס לבן נקי */}
+      <Card className="shadow-md bg-white">
         <CardHeader>
           <CardTitle>Job Details</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <Input 
-            placeholder="Job Title (e.g.: DevOps Engineer)"
+            placeholder="Job Title (e.g.: Senior Frontend Developer)"
+            // חזרה לעיצוב input רגיל
             className="text-lg p-6"
             value={jobTitle}
             onChange={(e) => setJobTitle(e.target.value)}
           />
           <Textarea 
-            placeholder="Paste the full job description here..."
+            placeholder="Paste the full job description here (Requirements, Responsibilities...)"
+            // חזרה לעיצוב textarea רגיל
             className="min-h-[200px] resize-none text-base"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -161,20 +180,21 @@ export default function Dashboard() {
           
           <Button 
             onClick={handleAnalyze} 
-            disabled={isAnalyzing || !resumeData}
+            disabled={isAnalyzing || !hasResume}
+            // הכפתור הכחול הקלאסי ללא אפקטים מוגזמים
             className="w-full h-14 text-lg bg-blue-600 hover:bg-blue-700 shadow-lg transition-all hover:scale-[1.01]"
           >
             {isAnalyzing ? (
-              <><Loader2 className="mr-2 animate-spin" /> Analyzing...</>
+              <><Loader2 className="mr-2 animate-spin" /> Analyzing Match...</>
             ) : (
               <><Sparkles className="mr-2" /> Analyze Match Now</>
             )}
           </Button>
 
-          {!resumeData && (
+          {!hasResume && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Note</AlertTitle>
+              <AlertTitle>Resume Required</AlertTitle>
               <AlertDescription>
                 Cannot perform analysis without a resume. <Link href="/profile" className="underline font-bold">Go to Profile</Link> to update.
               </AlertDescription>
@@ -185,7 +205,7 @@ export default function Dashboard() {
 
       {currentResult && (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <h2 className="text-2xl font-bold mb-4">Analysis Results</h2>
+          <h2 className="text-2xl font-bold mb-4 text-slate-900">Analysis Results</h2>
           <AnalysisResult 
             jobTitle={currentResult.job_title}
             matchScore={currentResult.match_score}

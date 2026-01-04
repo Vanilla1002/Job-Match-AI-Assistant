@@ -11,7 +11,7 @@ export default function LandingPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
 
-  // בדיקה מהירה: אם המשתמש כבר מחובר, נקפיץ אותו ישר לאפליקציה
+  // Quick check: if user is already logged in, redirect to app
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession()
@@ -23,7 +23,7 @@ export default function LandingPage() {
     checkSession()
   }, [router])
 
-  if (loading) return null // מונע הבהוב בזמן הבדיקה
+  if (loading) return null // Prevents flashing during check
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col">
