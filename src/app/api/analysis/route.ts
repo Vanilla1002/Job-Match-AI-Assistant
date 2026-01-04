@@ -1,16 +1,21 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase-server';
+import { createClient } from '@/lib/supabase-server'; 
 import { parseJobDescription, analyzeMatch, ResumeData } from '@/lib/AiServices';
 
 export async function POST(req: Request) {
+  // 1. Initialize Supabase on server side
   const supabase = await createClient();
-  const { jobDescription } = await req.json();
-
+  
+  // 2. Check authenticated user
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   try {
-    // 1. Fetch prepared data from DB
+    const { jobDescription } = await req.json();
+    if (!jobDescription) throw new Error("Job description is required");
+
+    // 3. Fetch structured data (resume_data) from user's profile
+    // We don't trust the client to send it, we take it from the secure DB
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('resume_data')
@@ -18,25 +23,23 @@ export async function POST(req: Request) {
       .single();
 
     if (profileError || !profile?.resume_data) {
-      return NextResponse.json(
-        { error: 'Please set up your profile and resume first' }, 
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Resume not found. Please update your profile.' }, { status: 404 });
     }
 
-    // Convert to our type (TypeScript)
-    const userResumeData = profile.resume_data as ResumeData;
+    // Convert to ResumeData type to make TypeScript happy
+    const resumeData = profile.resume_data as ResumeData;
 
-    // 2. Analyze job only (single "expensive" operation)
+    // 4. Step A: Analyze the job (user sent text, we convert to JSON)
     const jobData = await parseJobDescription(jobDescription);
 
-    // 3. Perform comparison (fast and cheap operation)
-    const matchResult = await analyzeMatch(userResumeData, jobData);
+    // 5. Step B: Perform smart comparison
+    const analysisResult = await analyzeMatch(resumeData, jobData);
 
-    return NextResponse.json(matchResult);
+    // Return result to client (client will save it to history)
+    return NextResponse.json(analysisResult);
 
   } catch (error: any) {
-    console.error('Analysis error:', error);
-    return NextResponse.json({ error: 'Failed to analyze job' }, { status: 500 });
+    console.error('Analysis Error:', error);
+    return NextResponse.json({ error: error.message || 'Analysis failed' }, { status: 500 });
   }
 }

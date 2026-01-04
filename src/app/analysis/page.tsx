@@ -12,6 +12,7 @@ import { Loader2, Sparkles, AlertCircle } from 'lucide-react'
 import { AnalysisResult } from '@/components/AnalysisResult'
 import Link from 'next/link'
 import { toast } from "sonner"
+import { LoadingScreen } from '@/components/LoadingScreen'
 
 export default function Dashboard() {
   const router = useRouter()
@@ -116,18 +117,11 @@ export default function Dashboard() {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-      </div>
-    )
-  }
-
+    if (loading) return <LoadingScreen />
+  
   return (
     // הוספתי את ה-animate-in שביקשת לשמור, אבל בתוך העיצוב הבהיר
-    <div className="p-8 max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500">
-      <div className="flex justify-between items-start">
+      <div className="p-8 max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">      <div className="flex justify-between items-start">
         <div>
           {/* חזרה לצבעי טקסט רגילים (שחור/אפור) */}
           <h1 className="text-3xl font-bold text-slate-900">New Job Analysis</h1>
