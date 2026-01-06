@@ -16,7 +16,6 @@ import { LoadingScreen } from '@/components/LoadingScreen'
 
 export default function Dashboard() {
   const router = useRouter()
-  // --- לוגיקה חדשה: משתנים ---
   const [hasResume, setHasResume] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<string | null>(null)
   
@@ -27,7 +26,6 @@ export default function Dashboard() {
   const [currentResult, setCurrentResult] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 
-  // --- לוגיקה חדשה: useEffect ---
   useEffect(() => {
     const checkProfile = async () => {
       const { data: { user } } = await supabase.auth.getUser()
@@ -36,7 +34,6 @@ export default function Dashboard() {
         return
       }
 
-      // בדיקה יעילה: האם קיים מידע, ללא משיכת הטקסט המלא
       const { data } = await supabase
         .from('profiles')
         .select('updated_at, resume_data') 
@@ -74,7 +71,6 @@ export default function Dashboard() {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       
-      // שליחה ל-API החדש (ללא קורות החיים בגוף הבקשה)
       const response = await fetch('/api/analysis', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -84,7 +80,6 @@ export default function Dashboard() {
       const aiResult = await response.json()
       if (aiResult.error) throw new Error(aiResult.error)
 
-      // שמירת התוצאה ב-Supabase לפי המבנה החדש
       const { data, error } = await supabase
         .from('job_analyses')
         .insert({
@@ -98,7 +93,7 @@ export default function Dashboard() {
         .select()
         .single()
 
-      if (error) throw error
+      if (error) throw new Error(error.message || JSON.stringify(error))
 
       if (data) {
         setCurrentResult(data)
@@ -108,9 +103,9 @@ export default function Dashboard() {
       }
 
     } catch (err: any) {
-      console.error(err)
+      const errorMsg = err?.message || (typeof err === 'string' ? err : JSON.stringify(err))
       toast.error("Analysis Failed", {
-        description: err.message || "Something went wrong. Please try again."
+        description: errorMsg || "Something went wrong. Please try again."
       })
     } finally {
       setIsAnalyzing(false)
