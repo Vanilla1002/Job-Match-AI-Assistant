@@ -5,7 +5,7 @@ import { parseJobDescription, analyzeMatch, ResumeData } from '@/lib/AiServices'
 export async function POST(req: Request) {
   // 1. Initialize Supabase on server side
   const supabase = await createClient();
-  
+   
   // 2. Check authenticated user
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -15,7 +15,6 @@ export async function POST(req: Request) {
     if (!jobDescription) throw new Error("Job description is required");
 
     // 3. Fetch structured data (resume_data) from user's profile
-    // We don't trust the client to send it, we take it from the secure DB
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('resume_data')
@@ -26,16 +25,26 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Resume not found. Please update your profile.' }, { status: 404 });
     }
 
-    // Convert to ResumeData type to make TypeScript happy
+    // Convert to ResumeData type
     const resumeData = profile.resume_data as ResumeData;
 
-    // 4. Step A: Analyze the job (user sent text, we convert to JSON)
-    const jobData = await parseJobDescription(jobDescription);
+    // 4. Step A: Analyze AND Validate the job description
+    const jobAnalysisResult = await parseJobDescription(jobDescription);
 
-    // 5. Step B: Perform smart comparison
-    const analysisResult = await analyzeMatch(resumeData, jobData);
+    // --- Validation Gate ---
+    if (!jobAnalysisResult.isValid || !jobAnalysisResult.data) {
+      // Return a 400 error with the specific reason from AI (e.g., "This is a recipe")
+      return NextResponse.json(
+        { error: jobAnalysisResult.validationReason || "Invalid job description provided." }, 
+        { status: 400 }
+      );
+    }
+    // ---------------------
 
-    // Return result to client (client will save it to history)
+    // 5. Step B: Perform smart comparison (using the valid data)
+    const analysisResult = await analyzeMatch(resumeData, jobAnalysisResult.data);
+
+    // Return result to client
     return NextResponse.json(analysisResult);
 
   } catch (error: any) {
