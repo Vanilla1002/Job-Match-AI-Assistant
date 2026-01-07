@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react' // <--- הוספנו useEffect
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
@@ -20,12 +20,12 @@ import {
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from "sonner"
 
-// Define the updated interface locally
 interface Resource {
   title: string;
   type: 'video' | 'course' | 'documentation' | 'article';
   platform: string;
   author?: string;
+  url: string; 
 }
 
 interface AnalysisResultProps {
@@ -56,16 +56,13 @@ export function AnalysisResult({
   const [isLoadingPath, setIsLoadingPath] = useState(false)
   const [isPathVisible, setIsPathVisible] = useState(false)
 
-  // --- התיקון הקריטי: סנכרון הנתונים מהדאטה-בייס ל-State ---
   useEffect(() => {
     if (initialLearningPath) {
       setLearningPath(initialLearningPath)
     }
   }, [initialLearningPath])
-  // ---------------------------------------------------------
 
   const handleGeneratePath = async () => {
-    // אם כבר יש נתיב (מהדאטה בייס או שנוצר הרגע), רק נפתח/נסגור
     if (learningPath) {
       setIsPathVisible(!isPathVisible)
       return
@@ -98,7 +95,6 @@ export function AnalysisResult({
     }
   }
 
-  // Helper to render icon based on resource type
   const getResourceIcon = (type: string) => {
     switch(type) {
       case 'video': return <Youtube size={14} className="text-red-500" />;
@@ -108,34 +104,28 @@ export function AnalysisResult({
     }
   }
 
-  // Helper to construct a smart search URL
-  const getSearchUrl = (res: Resource) => {
-    const query = `${res.title} ${res.platform} ${res.author || ''}`
-    return `https://www.google.com/search?q=${encodeURIComponent(query)}`
-  }
 
   return (
     <Card className="w-full mb-4 shadow-lg border-t-4 border-t-blue-500 overflow-hidden">
+      {/* ... (החלק העליון של הקארד נשאר אותו דבר) ... */}
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-xl font-bold text-slate-800">{jobTitle}</CardTitle>
         <Badge className={`${scoreColor} text-white hover:${scoreColor}`}>
           {matchScore}% Match
         </Badge>
       </CardHeader>
+      
       <CardContent>
-        {/* Score Area */}
-        <div className="flex items-center gap-4 mb-4">
+         <div className="flex items-center gap-4 mb-4">
            <Progress value={matchScore} className="h-2" />
         </div>
 
-        {/* Summary */}
         <div className="bg-slate-50 p-4 rounded-md mb-4 border border-slate-100">
             <p className="text-sm text-gray-700 leading-relaxed" dir="rtl">
                 {summary}
             </p>
         </div>
 
-        {/* Missing Keywords */}
         {missingKeywords && missingKeywords.length > 0 && (
           <div className="space-y-2 mb-6">
             <span className="text-sm font-semibold text-red-600">Missing Skills:</span>
@@ -149,7 +139,6 @@ export function AnalysisResult({
           </div>
         )}
 
-        {/* --- Learning Path Button & Content --- */}
         <div className="mt-6 pt-4 border-t border-slate-100">
           <Button 
             onClick={handleGeneratePath} 
@@ -176,7 +165,6 @@ export function AnalysisResult({
               >
                 <div className="pt-6 space-y-6">
                   
-                  {/* Part 1: Skills & Specific Resources */}
                   <div className="space-y-4">
                     <h4 className="font-bold flex items-center gap-2 text-slate-800 text-lg">
                       <BookOpen size={20} className="text-blue-600"/> 
@@ -191,14 +179,13 @@ export function AnalysisResult({
                           </div>
                           <p className="text-sm text-slate-600 mb-3">{item.description}</p>
                           
-                          {/* Resources List */}
                           <div className="space-y-2">
                             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Recommended Resources:</p>
                             <div className="grid gap-2">
                               {item.resources.map((res: Resource, rIdx: number) => (
                                 <a 
                                   key={rIdx}
-                                  href={getSearchUrl(res)}
+                                  href={res.url} // <--- שינוי קריטי: שימוש ב-URL הישיר
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="flex items-center justify-between p-2 rounded bg-slate-50 hover:bg-blue-50 border border-transparent hover:border-blue-100 group transition-colors cursor-pointer text-decoration-none"
@@ -224,7 +211,7 @@ export function AnalysisResult({
                     </div>
                   </div>
 
-                  {/* Part 2: Practical Project */}
+                  {/* ... החלק של הפרויקט נשאר ללא שינוי ... */}
                   <div className="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 p-5 rounded-xl">
                     <div className="flex justify-between items-start mb-2">
                         <h4 className="font-bold flex items-center gap-2 text-indigo-900 text-lg">
@@ -240,7 +227,6 @@ export function AnalysisResult({
                       {learningPath.project_suggestion.description}
                     </p>
 
-                    {/* Tech Stack Tags */}
                     <div className="flex flex-wrap gap-2 mb-4">
                         {learningPath.project_suggestion.tech_stack.map((tech: string, i: number) => (
                             <Badge key={i} className="bg-indigo-200 text-indigo-800 hover:bg-indigo-300 border-none">

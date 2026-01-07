@@ -32,10 +32,11 @@ export type JobAnalysisResult = {
 };
 
 export type LearningResource = {
-  title: string;       // e.g., "React JS Crash Course"
+  title: string;
   type: 'video' | 'course' | 'documentation' | 'article'; 
-  platform: string;    // e.g., "YouTube", "Udemy", "Official Docs", "Medium"
-  author?: string;     // e.g., "Traversy Media", "Meta"
+  platform: string;
+  author?: string;
+  url: string; 
 };
 
 export type ProjectSuggestion = {
@@ -189,15 +190,20 @@ export async function generateLearningPath(
         
         GOAL: Create a bridge between the user's current skills and the target job.
         
-        PART 1: RESOURCES
+        PART 1: RESOURCES (STRICT)
         For each missing skill, provide specific, high-quality learning resources.
-        - Prioritize free, official docs, or highly reputable YouTube channels (e.g., Traversy Media, Net Ninja, FreeCodeCamp).
+        - **CRITICAL REQUIREMENT:** You MUST provide ACTUAL, DIRECT URLs to the content.
+        - For Documentation: Link directly to official docs (e.g., "https://react.dev/learn", not just "react.dev").
+        - For Videos: Link to a specific, high-quality YouTube video or Playlist.
+        - Do NOT provide generic search URLs like "google.com" or "youtube.com".
+        - Prioritize free, official docs, or highly reputable creators (e.g., Traversy Media, Net Ninja, FreeCodeCamp).
         
         PART 2: CAPSTONE PROJECT (CRITICAL)
         Suggest ONE comprehensive "Portfolio-Ready" project.
         - The project MUST combine multiple "missing skills" into a single application.
         - It should be complex enough to impress an interviewer.
         - Explicitly list the Tech Stack required.
+        - Explain the "Real World Use Case" to help the candidate sell it in an interview.
         
         Output JSON format strictly:
         {
@@ -206,14 +212,20 @@ export async function generateLearningPath(
               "skill": "React", 
               "description": "Why it matters.", 
               "resources": [
-                { "title": "...", "type": "video", "platform": "...", "author": "..." }
+                { 
+                  "title": "React Official Tutorial", 
+                  "type": "documentation", 
+                  "platform": "React Docs", 
+                  "author": "Meta", 
+                  "url": "https://react.dev/learn"
+                }
               ] 
             }
           ],
           "project_suggestion": {
             "title": "Name of the app",
             "description": "A compelling description of what the app does.",
-            "difficulty": "Intermediate",
+            "difficulty": "Intermediate", // or Beginner/Advanced
             "tech_stack": ["React", "TheMissingSkill1", "TheMissingSkill2"],
             "key_features": ["User Auth", "Real-time updates", "Dashboard"],
             "real_world_use_case": "Demonstrates ability to handle state management and API integration."
