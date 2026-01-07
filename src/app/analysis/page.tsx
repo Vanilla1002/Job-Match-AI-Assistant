@@ -115,19 +115,15 @@ export default function Dashboard() {
     if (loading) return <LoadingScreen />
   
   return (
-    // הוספתי את ה-animate-in שביקשת לשמור, אבל בתוך העיצוב הבהיר
       <div className="p-8 max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">      <div className="flex justify-between items-start">
         <div>
-          {/* חזרה לצבעי טקסט רגילים (שחור/אפור) */}
           <h1 className="text-3xl font-bold text-slate-900">New Job Analysis</h1>
           <p className="text-slate-500 mt-1">Paste job details and get instant match</p>
         </div>
         
-        {/* חזרה לרקע לבן עבור הסטטוס */}
         <div className="bg-white p-3 rounded-lg border shadow-sm text-sm">
           {hasResume ? (
             <div className="text-green-600 flex items-center gap-2">
-              {/* השארתי פה אנימציה עדינה (pulse) במקום ה-ping הדרמטי, כדי להתאים לעיצוב הנקי */}
               <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"/>
               <div>
                 <div className="font-bold">Resume Active</div>
@@ -146,7 +142,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* כרטיס לבן נקי */}
       <Card className="shadow-md bg-white">
         <CardHeader>
           <CardTitle>Job Details</CardTitle>
@@ -154,14 +149,12 @@ export default function Dashboard() {
         <CardContent className="space-y-4">
           <Input 
             placeholder="Job Title (e.g.: Senior Frontend Developer)"
-            // חזרה לעיצוב input רגיל
             className="text-lg p-6"
             value={jobTitle}
             onChange={(e) => setJobTitle(e.target.value)}
           />
           <Textarea 
             placeholder="Paste the full job description here (Requirements, Responsibilities...)"
-            // חזרה לעיצוב textarea רגיל
             className="min-h-[200px] resize-none text-base"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -170,7 +163,6 @@ export default function Dashboard() {
           <Button 
             onClick={handleAnalyze} 
             disabled={isAnalyzing || !hasResume}
-            // הכפתור הכחול הקלאסי ללא אפקטים מוגזמים
             className="w-full h-14 text-lg bg-blue-600 hover:bg-blue-700 shadow-lg transition-all hover:scale-[1.01]"
           >
             {isAnalyzing ? (
@@ -196,11 +188,14 @@ export default function Dashboard() {
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
           <h2 className="text-2xl font-bold mb-4 text-slate-900">Analysis Results</h2>
           <AnalysisResult 
+            id={currentResult.id}
             jobTitle={currentResult.job_title}
             matchScore={currentResult.match_score}
             summary={currentResult.tailored_summary}
             missingKeywords={currentResult.missing_keywords}
             createdAt={currentResult.created_at}
+            jobDescription={currentResult.job_description}
+            initialLearningPath={currentResult.learning_path}
           />
         </div>
       )}

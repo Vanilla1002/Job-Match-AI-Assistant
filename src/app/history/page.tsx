@@ -40,11 +40,14 @@ export default function HistoryPage() {
         {history.map((item) => (
           <AnalysisResult 
             key={item.id}
+            id={item.id}
             jobTitle={item.job_title}
             matchScore={item.match_score}
             summary={item.tailored_summary}
             missingKeywords={item.missing_keywords}
             createdAt={item.created_at}
+            jobDescription={item.job_description}
+            initialLearningPath={item.learning_path}
           />
         ))}
       </div>

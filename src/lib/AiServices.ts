@@ -17,7 +17,7 @@ export type ResumeAnalysisResult = {
   data?: ResumeData;
 };
 
-// --- Updated Job Types ---
+
 export type JobData = {
   must_have_skills: string[];
   nice_to_have_skills: string[];
@@ -30,7 +30,33 @@ export type JobAnalysisResult = {
   validationReason?: string;
   data?: JobData;
 };
-// -------------------------
+
+export type LearningResource = {
+  title: string;       // e.g., "React JS Crash Course"
+  type: 'video' | 'course' | 'documentation' | 'article'; 
+  platform: string;    // e.g., "YouTube", "Udemy", "Official Docs", "Medium"
+  author?: string;     // e.g., "Traversy Media", "Meta"
+};
+
+export type ProjectSuggestion = {
+  title: string;
+  description: string;
+  key_features: string[];
+  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+  tech_stack: string[]; 
+  real_world_use_case: string; 
+};
+
+export type LearningPath = {
+  missing_skills: {
+    skill: string;
+    description: string;
+    resources: LearningResource[];
+  }[];
+  project_suggestion: ProjectSuggestion;
+  estimated_time_weeks: number;
+};
+
 
 export async function parseResume(resumeText: string): Promise<ResumeAnalysisResult> {
   const completion = await openai.chat.completions.create({
@@ -73,7 +99,6 @@ export async function parseResume(resumeText: string): Promise<ResumeAnalysisRes
   return JSON.parse(completion.choices[0].message.content!);
 }
 
-// --- Updated Function with Validation ---
 export async function parseJobDescription(jobText: string): Promise<JobAnalysisResult> {
   const completion = await openai.chat.completions.create({
     model: "gpt-4o",
@@ -113,7 +138,6 @@ export async function parseJobDescription(jobText: string): Promise<JobAnalysisR
   });
   return JSON.parse(completion.choices[0].message.content!);
 }
-// ----------------------------------------
 
 export async function analyzeMatch(resumeData: ResumeData, jobData: JobData) {
   const completion = await openai.chat.completions.create({
@@ -148,5 +172,64 @@ export async function analyzeMatch(resumeData: ResumeData, jobData: JobData) {
     ],
     response_format: { type: "json_object" }
   });
+  return JSON.parse(completion.choices[0].message.content!);
+}
+
+export async function generateLearningPath(
+  missingKeywords: string[], 
+  jobTitle: string,
+  jobDescription: string
+): Promise<LearningPath> {
+  const completion = await openai.chat.completions.create({
+    model: "gpt-4o",
+    messages: [
+      { 
+        role: "system", 
+        content: `You are a Senior Technical Career Mentor.
+        
+        GOAL: Create a bridge between the user's current skills and the target job.
+        
+        PART 1: RESOURCES
+        For each missing skill, provide specific, high-quality learning resources.
+        - Prioritize free, official docs, or highly reputable YouTube channels (e.g., Traversy Media, Net Ninja, FreeCodeCamp).
+        
+        PART 2: CAPSTONE PROJECT (CRITICAL)
+        Suggest ONE comprehensive "Portfolio-Ready" project.
+        - The project MUST combine multiple "missing skills" into a single application.
+        - It should be complex enough to impress an interviewer.
+        - Explicitly list the Tech Stack required.
+        
+        Output JSON format strictly:
+        {
+          "missing_skills": [
+            { 
+              "skill": "React", 
+              "description": "Why it matters.", 
+              "resources": [
+                { "title": "...", "type": "video", "platform": "...", "author": "..." }
+              ] 
+            }
+          ],
+          "project_suggestion": {
+            "title": "Name of the app",
+            "description": "A compelling description of what the app does.",
+            "difficulty": "Intermediate",
+            "tech_stack": ["React", "TheMissingSkill1", "TheMissingSkill2"],
+            "key_features": ["User Auth", "Real-time updates", "Dashboard"],
+            "real_world_use_case": "Demonstrates ability to handle state management and API integration."
+          },
+          "estimated_time_weeks": number
+        }` 
+      },
+      { 
+        role: "user", 
+        content: `Target Job: ${jobTitle}
+        Job Desc Snippet: ${jobDescription.substring(0, 500)}...
+        Missing Skills to learn: ${JSON.stringify(missingKeywords)}` 
+      }
+    ],
+    response_format: { type: "json_object" }
+  });
+  
   return JSON.parse(completion.choices[0].message.content!);
 }
