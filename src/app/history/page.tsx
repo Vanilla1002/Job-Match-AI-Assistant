@@ -33,7 +33,6 @@ export default function HistoryPage() {
   if (loading) return <LoadingScreen />
 
   return (
-    // הוספתי גם כאן את slide-in-from-bottom-4
     <div className="p-8 max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
       <h1 className="text-3xl font-bold mb-6">Analysis History</h1>
       <div className="grid gap-6">
@@ -41,11 +40,14 @@ export default function HistoryPage() {
         {history.map((item) => (
           <AnalysisResult 
             key={item.id}
+            id={item.id}
             jobTitle={item.job_title}
             matchScore={item.match_score}
             summary={item.tailored_summary}
             missingKeywords={item.missing_keywords}
             createdAt={item.created_at}
+            jobDescription={item.job_description}
+            initialLearningPath={item.learning_path}
           />
         ))}
       </div>

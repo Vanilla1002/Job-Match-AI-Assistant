@@ -1,16 +1,20 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase-server';
+import { createClient } from '@/lib/supabase-server'; 
 import { parseJobDescription, analyzeMatch, ResumeData } from '@/lib/AiServices';
 
 export async function POST(req: Request) {
+  // 1. Initialize Supabase on server side
   const supabase = await createClient();
-  const { jobDescription } = await req.json();
-
+   
+  // 2. Check authenticated user
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   try {
-    // 1. Fetch prepared data from DB
+    const { jobDescription } = await req.json();
+    if (!jobDescription) throw new Error("Job description is required");
+
+    // 3. Fetch structured data (resume_data) from user's profile
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('resume_data')
@@ -18,25 +22,33 @@ export async function POST(req: Request) {
       .single();
 
     if (profileError || !profile?.resume_data) {
+      return NextResponse.json({ error: 'Resume not found. Please update your profile.' }, { status: 404 });
+    }
+
+    // Convert to ResumeData type
+    const resumeData = profile.resume_data as ResumeData;
+
+    // 4. Step A: Analyze AND Validate the job description
+    const jobAnalysisResult = await parseJobDescription(jobDescription);
+
+    // --- Validation Gate ---
+    if (!jobAnalysisResult.isValid || !jobAnalysisResult.data) {
+      // Return a 400 error with the specific reason from AI (e.g., "This is a recipe")
       return NextResponse.json(
-        { error: 'Please set up your profile and resume first' }, 
+        { error: jobAnalysisResult.validationReason || "Invalid job description provided." }, 
         { status: 400 }
       );
     }
+    // ---------------------
 
-    // Convert to our type (TypeScript)
-    const userResumeData = profile.resume_data as ResumeData;
+    // 5. Step B: Perform smart comparison (using the valid data)
+    const analysisResult = await analyzeMatch(resumeData, jobAnalysisResult.data);
 
-    // 2. Analyze job only (single "expensive" operation)
-    const jobData = await parseJobDescription(jobDescription);
-
-    // 3. Perform comparison (fast and cheap operation)
-    const matchResult = await analyzeMatch(userResumeData, jobData);
-
-    return NextResponse.json(matchResult);
+    // Return result to client
+    return NextResponse.json(analysisResult);
 
   } catch (error: any) {
-    console.error('Analysis error:', error);
-    return NextResponse.json({ error: 'Failed to analyze job' }, { status: 500 });
+    console.error('Analysis Error:', error);
+    return NextResponse.json({ error: error.message || 'Analysis failed' }, { status: 500 });
   }
 }
