@@ -327,7 +327,7 @@ export default function ProfilePage() {
                         
                         {lastUpdated && (
                             <div className="mt-4 text-xs text-gray-500 dark:text-gray-400 select-none">
-                            Last updated: {new Date(lastUpdated).toLocaleString()}
+                            Last updated: {new Date(lastUpdated).toLocaleString([], { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                             </div>
                         )}
                     </CardContent>
