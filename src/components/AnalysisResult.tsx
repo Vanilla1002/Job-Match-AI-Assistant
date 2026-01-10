@@ -42,6 +42,7 @@ interface AnalysisResultProps {
   createdAt: string
   initialLearningPath?: any 
   jobDescription?: string
+  initialTailoredData?: any
 }
 
 export function AnalysisResult({ 
@@ -52,7 +53,8 @@ export function AnalysisResult({
   missingKeywords, 
   createdAt,
   initialLearningPath,
-  jobDescription
+  jobDescription,
+  initialTailoredData
 }: AnalysisResultProps) {
   
   const scoreColor = matchScore >= 80 ? "bg-green-500" : matchScore >= 50 ? "bg-yellow-500" : "bg-red-500"
@@ -63,6 +65,7 @@ export function AnalysisResult({
 
   // State for PDF generation
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false)
+  const [cachedResumeData, setCachedResumeData] = useState<any>(initialTailoredData)
 
   useEffect(() => {
     if (initialLearningPath) {
@@ -107,23 +110,30 @@ export function AnalysisResult({
   const handleDownloadTailoredResume = async () => {
     setIsGeneratingPdf(true);
     try {
-      toast.info("Generating tailored resume... This may take a moment.");
+      let dataToUse = cachedResumeData;
 
-      // 1. Call AI to get structured data
-      const response = await fetch('/api/tailor', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          jobDescription: jobDescription,
-          missingSkills: missingKeywords 
-        })
-      });
+      if (!dataToUse) {
+        toast.info("Preparing resume...");
 
-      const data = await response.json();
-      if (data.error) throw new Error(data.error);
+        const response = await fetch('/api/tailor', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            analysisId: id,
+            jobDescription: jobDescription,
+            missingSkills: missingKeywords 
+          })
+        });
 
-      // 2. Generate PDF (Binary Blob) from data
-      const blob = await pdf(<TailoredResumePdf data={data} />).toBlob();
+        const result = await response.json();
+        if (result.error) throw new Error(result.error);
+        dataToUse = result;
+        setCachedResumeData(result);
+      } else {
+        toast.info("Generating PDF from saved data...");
+      }
+
+      const blob = await pdf(<TailoredResumePdf data={dataToUse} />).toBlob();
       
       // 3. Trigger automatic browser download
       const url = URL.createObjectURL(blob);
