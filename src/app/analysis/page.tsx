@@ -196,6 +196,7 @@ export default function Dashboard() {
             createdAt={currentResult.created_at}
             jobDescription={currentResult.job_description}
             initialLearningPath={currentResult.learning_path}
+            initialTailoredData={currentResult.tailored_resume_data}
           />
         </div>
       )}
