@@ -15,10 +15,15 @@ import {
   Youtube,
   FileText,
   MonitorPlay,
-  ExternalLink
+  ExternalLink,
+  FileDown // Added icon
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from "sonner"
+
+// Added imports for PDF generation
+import { pdf } from '@react-pdf/renderer'
+import { TailoredResumePdf } from './TailoredResumePdf'
 
 interface Resource {
   title: string;
@@ -55,6 +60,9 @@ export function AnalysisResult({
   const [learningPath, setLearningPath] = useState(initialLearningPath)
   const [isLoadingPath, setIsLoadingPath] = useState(false)
   const [isPathVisible, setIsPathVisible] = useState(false)
+
+  // State for PDF generation
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false)
 
   useEffect(() => {
     if (initialLearningPath) {
@@ -95,6 +103,46 @@ export function AnalysisResult({
     }
   }
 
+  // New function to handle resume tailoring and download
+  const handleDownloadTailoredResume = async () => {
+    setIsGeneratingPdf(true);
+    try {
+      toast.info("Generating tailored resume... This may take a moment.");
+
+      // 1. Call AI to get structured data
+      const response = await fetch('/api/tailor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          jobDescription: jobDescription,
+          missingSkills: missingKeywords 
+        })
+      });
+
+      const data = await response.json();
+      if (data.error) throw new Error(data.error);
+
+      // 2. Generate PDF (Binary Blob) from data
+      const blob = await pdf(<TailoredResumePdf data={data} />).toBlob();
+      
+      // 3. Trigger automatic browser download
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Tailored_Resume_${jobTitle.replace(/\s+/g, '_')}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast.success("Resume downloaded successfully!");
+
+    } catch (error: any) {
+      toast.error("Failed to generate PDF", { description: error.message });
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
   const getResourceIcon = (type: string) => {
     switch(type) {
       case 'video': return <Youtube size={14} className="text-red-500" />;
@@ -107,7 +155,6 @@ export function AnalysisResult({
 
   return (
     <Card className="w-full mb-4 shadow-lg border-t-4 border-t-blue-500 overflow-hidden">
-      {/* ... (החלק העליון של הקארד נשאר אותו דבר) ... */}
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-xl font-bold text-slate-800">{jobTitle}</CardTitle>
         <Badge className={`${scoreColor} text-white hover:${scoreColor}`}>
@@ -139,7 +186,10 @@ export function AnalysisResult({
           </div>
         )}
 
-        <div className="mt-6 pt-4 border-t border-slate-100">
+        {/* Updated footer container with flex-col to stack buttons */}
+        <div className="mt-6 pt-4 border-t border-slate-100 flex flex-col gap-3">
+          
+          {/* Existing Learning Path Button */}
           <Button 
             onClick={handleGeneratePath} 
             disabled={isLoadingPath}
@@ -153,6 +203,20 @@ export function AnalysisResult({
             ) : (
               <><GraduationCap className="mr-2 h-4 w-4" /> Generate Learning Path & Projects</>
             )}
+          </Button>
+
+          {/* New Tailored Resume Button */}
+          <Button 
+            onClick={handleDownloadTailoredResume}
+            disabled={isGeneratingPdf}
+            variant="secondary"
+            className="w-full border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700"
+          >
+             {isGeneratingPdf ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Tailoring Resume...</>
+             ) : (
+                <><FileDown className="mr-2 h-4 w-4" /> Download Tailored Resume (PDF)</>
+             )}
           </Button>
 
           <AnimatePresence>
@@ -185,7 +249,7 @@ export function AnalysisResult({
                               {item.resources.map((res: Resource, rIdx: number) => (
                                 <a 
                                   key={rIdx}
-                                  href={res.url} // <--- שינוי קריטי: שימוש ב-URL הישיר
+                                  href={res.url}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="flex items-center justify-between p-2 rounded bg-slate-50 hover:bg-blue-50 border border-transparent hover:border-blue-100 group transition-colors cursor-pointer text-decoration-none"
@@ -211,7 +275,6 @@ export function AnalysisResult({
                     </div>
                   </div>
 
-                  {/* ... החלק של הפרויקט נשאר ללא שינוי ... */}
                   <div className="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 p-5 rounded-xl">
                     <div className="flex justify-between items-start mb-2">
                         <h4 className="font-bold flex items-center gap-2 text-indigo-900 text-lg">
