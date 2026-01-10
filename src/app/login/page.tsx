@@ -1,6 +1,7 @@
 'use client' 
 
-import { useState } from 'react'
+// Added useEffect here
+import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { Mail, Lock, Loader2, ArrowRight } from 'lucide-react'
@@ -10,7 +11,31 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  
+  // New state to prevent flashing the login form while checking auth
+  const [checkingAuth, setCheckingAuth] = useState(true)
+  
   const router = useRouter()
+
+  useEffect(() => {
+    const checkUser = async () => {
+      try {
+        // Check if there is an active session
+        const { data: { session } } = await supabase.auth.getSession()
+        
+        if (session) {
+          
+          router.replace('/analysis')
+        } else {
+          setCheckingAuth(false)
+        }
+      } catch (error) {
+        setCheckingAuth(false)
+      }
+    }
+
+    checkUser()
+  }, [router])
 
   // Helper to handle errors gracefully
   const handleError = (msg: string) => {
@@ -52,6 +77,15 @@ export default function LoginPage() {
       router.push('/analysis')
     }
     setLoading(false)
+  }
+
+  // Prevent rendering the form until we know if the user is logged in
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen w-full bg-slate-950 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
+      </div>
+    )
   }
 
   return (
