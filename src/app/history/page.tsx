@@ -48,6 +48,7 @@ export default function HistoryPage() {
             createdAt={item.created_at}
             jobDescription={item.job_description}
             initialLearningPath={item.learning_path}
+            initialTailoredData={item.tailored_resume_data}
           />
         ))}
       </div>
