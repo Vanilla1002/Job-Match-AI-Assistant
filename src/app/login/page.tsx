@@ -1,18 +1,21 @@
 'use client' 
 
-// Added useEffect here
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
-import { Mail, Lock, Loader2, ArrowRight } from 'lucide-react'
+import { Mail, Lock, Loader2, ArrowRight, UserPlus, LogIn } from 'lucide-react'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   
-  // New state to prevent flashing the login form while checking auth
+  // State חדש לניהול המצב (האם אנחנו בהרשמה או התחברות)
+  const [isSignUpMode, setIsSignUpMode] = useState(false)
+  
+  // State למניעת הבהוב בטעינה ראשונית
   const [checkingAuth, setCheckingAuth] = useState(true)
   
   const router = useRouter()
@@ -20,11 +23,8 @@ export default function LoginPage() {
   useEffect(() => {
     const checkUser = async () => {
       try {
-        // Check if there is an active session
         const { data: { session } } = await supabase.auth.getSession()
-        
         if (session) {
-          
           router.replace('/analysis')
         } else {
           setCheckingAuth(false)
@@ -33,53 +33,55 @@ export default function LoginPage() {
         setCheckingAuth(false)
       }
     }
-
     checkUser()
   }, [router])
 
-  // Helper to handle errors gracefully
   const handleError = (msg: string) => {
     setError(msg)
-    setTimeout(() => setError(null), 4000) // Clear error after 4 seconds
+    setSuccessMessage(null)
+    setTimeout(() => setError(null), 4000)
   }
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault() // Prevent form submission
-    setLoading(true)
-    setError(null)
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-    })
-
-    if (error) {
-      handleError(error.message)
-    } else {
-      handleError('Success! Please check your email to verify.')
-    }
-    setLoading(false)
-  }
-
-  const handleSignIn = async (e: React.FormEvent) => {
+  // פונקציה אחת שמנהלת את הכל לפי המצב הנוכחי
+  const handleAuthAction = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError(null)
+    setSuccessMessage(null)
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-
-    if (error) {
-      handleError(error.message)
-    } else {
-      router.push('/analysis')
+    try {
+      if (isSignUpMode) {
+        // --- לוגיקת הרשמה ---
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+        })
+        if (error) throw error
+        setSuccessMessage('Account created! Please check your email to verify.')
+        // אופציונלי: אפשר להעביר את המשתמש למצב התחברות או לנקות שדות
+      } else {
+        // --- לוגיקת התחברות ---
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        })
+        if (error) throw error
+        router.push('/analysis')
+      }
+    } catch (error: any) {
+      handleError(error.message || 'An error occurred')
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
-  // Prevent rendering the form until we know if the user is logged in
+  // פונקציה למעבר בין מצבים
+  const toggleMode = () => {
+    setIsSignUpMode(!isSignUpMode)
+    setError(null)
+    setSuccessMessage(null)
+  }
+
   if (checkingAuth) {
     return (
       <div className="min-h-screen w-full bg-slate-950 flex items-center justify-center">
@@ -90,27 +92,29 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen w-full bg-slate-950 flex items-center justify-center p-4">
-      {/* Background decoration */}
+      {/* רקע דקורטיבי */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:14px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
 
       <div className="w-full max-w-md relative z-10">
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-8 space-y-8">
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-8 space-y-8 transition-all duration-300">
           
-          {/* Header & Logo */}
+          {/* כותרת משתנה לפי המצב */}
           <div className="text-center space-y-2">
             <h1 className="text-3xl font-bold text-white">
-              Job Match <span className="text-blue-500">AI</span>
+              {isSignUpMode ? 'Create Account' : 'Welcome Back'}
             </h1>
             <p className="text-slate-400 text-sm">
-              Sign in to manage your career path
+              {isSignUpMode 
+                ? 'Sign up to start your career journey' 
+                : 'Sign in to manage your career path'}
             </p>
           </div>
 
-          {/* Form */}
-          <form className="space-y-6" onSubmit={handleSignIn}>
+          {/* טופס אחיד */}
+          <form className="space-y-6" onSubmit={handleAuthAction}>
             <div className="space-y-4">
               
-              {/* Email Input */}
+              {/* Email */}
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Mail className="h-5 w-5 text-slate-500 group-focus-within:text-blue-500 transition-colors" />
@@ -125,7 +129,7 @@ export default function LoginPage() {
                 />
               </div>
 
-              {/* Password Input */}
+              {/* Password */}
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Lock className="h-5 w-5 text-slate-500 group-focus-within:text-blue-500 transition-colors" />
@@ -137,42 +141,55 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   className="block w-full pl-10 pr-3 py-3 border border-slate-700 rounded-lg bg-slate-800/50 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholder="••••••••"
+                  minLength={6}
                 />
               </div>
             </div>
 
-            {/* Error Message */}
+            {/* הודעות שגיאה או הצלחה */}
             {error && (
               <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center animate-in fade-in slide-in-from-top-1">
                 {error}
               </div>
             )}
+             {successMessage && (
+              <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20 text-green-400 text-sm text-center animate-in fade-in slide-in-from-top-1">
+                {successMessage}
+              </div>
+            )}
 
-            {/* Buttons */}
-            <div className="space-y-3 pt-2">
+            {/* כפתור ראשי משתנה */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 px-4 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-500/20 hover:scale-[1.02]"
+            >
+              {loading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <>
+                  {isSignUpMode ? 'Sign Up' : 'Sign In'} 
+                  {isSignUpMode ? <UserPlus className="h-4 w-4" /> : <LogIn className="h-4 w-4" />}
+                </>
+              )}
+            </button>
+            
+            {/* כפתור החלפת מצב (Toggle) */}
+            <div className="text-center pt-2">
               <button
-                type="submit"
+                type="button" // חשוב: type button מונע שליחת טופס
+                onClick={toggleMode}
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 px-4 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-500/20"
+                className="text-slate-400 hover:text-white text-sm font-medium py-2 transition-colors"
               >
-                {loading ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
+                {isSignUpMode ? (
+                  <span>Already have an account? <span className="text-blue-400 hover:underline">Sign In</span></span>
                 ) : (
-                  <>
-                    Sign In <ArrowRight className="h-4 w-4" />
-                  </>
+                  <span>Don't have an account? <span className="text-blue-400 hover:underline">Sign Up</span></span>
                 )}
               </button>
-              
-              <button
-                type="button"
-                onClick={handleSignUp}
-                disabled={loading}
-                className="w-full text-slate-400 hover:text-white text-sm font-medium py-2 transition-colors"
-              >
-                Don't have an account? <span className="text-blue-400 hover:underline">Sign up</span>
-              </button>
             </div>
+            
           </form>
         </div>
       </div>
