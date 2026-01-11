@@ -8,16 +8,22 @@ import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Loader2, Sparkles, AlertCircle } from 'lucide-react'
+import { Loader2, Sparkles, AlertCircle, Zap } from 'lucide-react' // הוספתי אייקון Zap
 import { AnalysisResult } from '@/components/AnalysisResult'
 import Link from 'next/link'
 import { toast } from "sonner"
 import { LoadingScreen } from '@/components/LoadingScreen'
+import { Badge } from "@/components/ui/badge" // נשתמש ב-Badge להצגת המכסה
 
 export default function Dashboard() {
   const router = useRouter()
   const [hasResume, setHasResume] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<string | null>(null)
+  
+  // --- New State for Daily Limit ---
+  const [dailyUsage, setDailyUsage] = useState(0)
+  const DAILY_LIMIT = 3;
+  // --------------------------------
   
   const [jobTitle, setJobTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -27,30 +33,50 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const checkProfile = async () => {
+    const initData = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
         router.push('/login')
         return
       }
 
-      const { data } = await supabase
+      // 1. Check Profile
+      const { data: profile } = await supabase
         .from('profiles')
         .select('updated_at, resume_data') 
         .eq('id', user.id)
         .single()
 
-      if (data && data.resume_data) {
+      if (profile && profile.resume_data) {
         setHasResume(true)
-        setLastUpdated(data.updated_at)
+        setLastUpdated(profile.updated_at)
       }
+
+      // 2. Check Daily Usage (New Logic)
+      const today = new Date();
+      today.setHours(0,0,0,0); // Local midnight comparison (or use UTC if preferred)
+      
+      const { count } = await supabase
+        .from('job_analyses')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .gte('created_at', today.toISOString())
+      
+      if (count !== null) setDailyUsage(count);
+      
       setLoading(false)
     }
-    checkProfile()
+    initData()
   }, [router])
 
-  // --- New logic: handleAnalyze ---
   const handleAnalyze = async () => {
+    if (dailyUsage >= DAILY_LIMIT) {
+      toast.error("Daily Limit Reached", {
+        description: "You have used your 3 free analyses for today. Come back tomorrow!"
+      })
+      return;
+    }
+
     if (!hasResume) {
       toast.error("Missing Resume", {
         description: "You must upload a resume in your profile first."
@@ -78,6 +104,7 @@ export default function Dashboard() {
       })
       
       const aiResult = await response.json()
+      
       if (aiResult.error) throw new Error(aiResult.error)
 
       const { data, error } = await supabase
@@ -97,6 +124,7 @@ export default function Dashboard() {
 
       if (data) {
         setCurrentResult(data)
+        setDailyUsage(prev => prev + 1) // עדכון המונה בלייב
         toast.success("Analysis Complete!", {
           description: `Matched ${data.match_score}% with the job.`
         })
@@ -112,33 +140,42 @@ export default function Dashboard() {
     }
   }
 
-    if (loading) return <LoadingScreen />
+  if (loading) return <LoadingScreen />
   
   return (
-      <div className="p-8 max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">      <div className="flex justify-between items-start">
+      <div className="p-8 max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">      
+      <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">New Job Analysis</h1>
           <p className="text-slate-500 mt-1">Paste job details and get instant match</p>
         </div>
         
-        <div className="bg-white p-3 rounded-lg border shadow-sm text-sm">
-          {hasResume ? (
-            <div className="text-green-600 flex items-center gap-2">
-              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"/>
-              <div>
-                <div className="font-bold">Resume Active</div>
-                <div className="text-xs text-slate-500">Last updated: {new Date(lastUpdated!).toLocaleDateString()}</div>
-              </div>
+        <div className="flex flex-col items-end gap-2">
+            {/* סטטוס מכסה יומית */}
+            <Badge variant="outline" className={`px-3 py-1 text-sm border-slate-200 ${dailyUsage >= DAILY_LIMIT ? 'bg-red-50 text-red-600 border-red-200' : 'bg-blue-50 text-blue-700 border-blue-200'}`}>
+                <Zap size={14} className="mr-1 fill-current" />
+                Daily Limit: {dailyUsage} / {DAILY_LIMIT}
+            </Badge>
+
+            <div className="bg-white p-3 rounded-lg border shadow-sm text-sm">
+            {hasResume ? (
+                <div className="text-green-600 flex items-center gap-2">
+                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"/>
+                <div>
+                    <div className="font-bold">Resume Active</div>
+                    <div className="text-xs text-slate-500">Last updated: {new Date(lastUpdated!).toLocaleDateString()}</div>
+                </div>
+                </div>
+            ) : (
+                <div className="text-red-500 flex items-center gap-2">
+                <AlertCircle size={16} />
+                <div>
+                    <div className="font-bold">Missing Resume</div>
+                    <Link href="/profile" className="text-xs underline text-blue-500">Click here to add</Link>
+                </div>
+                </div>
+            )}
             </div>
-          ) : (
-            <div className="text-red-500 flex items-center gap-2">
-              <AlertCircle size={16} />
-              <div>
-                <div className="font-bold">Missing Resume</div>
-                <Link href="/profile" className="text-xs underline text-blue-500">Click here to add</Link>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
@@ -162,15 +199,32 @@ export default function Dashboard() {
           
           <Button 
             onClick={handleAnalyze} 
-            disabled={isAnalyzing || !hasResume}
-            className="w-full h-14 text-lg bg-blue-600 hover:bg-blue-700 shadow-lg transition-all hover:scale-[1.01]"
+            disabled={isAnalyzing || !hasResume || dailyUsage >= DAILY_LIMIT} 
+            className={`w-full h-14 text-lg shadow-lg transition-all hover:scale-[1.01] ${
+                dailyUsage >= DAILY_LIMIT 
+                ? 'bg-slate-300 cursor-not-allowed text-slate-500' 
+                : 'bg-blue-600 hover:bg-blue-700'
+            }`}
           >
             {isAnalyzing ? (
               <><Loader2 className="mr-2 animate-spin" /> Analyzing Match...</>
+            ) : dailyUsage >= DAILY_LIMIT ? (
+              <>Daily Limit Reached (3/3)</>
             ) : (
               <><Sparkles className="mr-2" /> Analyze Match Now</>
             )}
           </Button>
+
+          {/* הודעה אם נגמרה המכסה */}
+          {dailyUsage >= DAILY_LIMIT && (
+            <Alert className="bg-orange-50 border-orange-200 text-orange-800">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>You've hit your daily limit</AlertTitle>
+              <AlertDescription>
+                You can perform up to 3 analyses per day. Your quota will reset at midnight.
+              </AlertDescription>
+            </Alert>
+          )}
 
           {!hasResume && (
             <Alert variant="destructive">
