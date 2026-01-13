@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, History, UserCircle, LogOut } from 'lucide-react'
+import { Home, History, UserCircle, LogOut, Menu, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -12,6 +12,7 @@ export function Sidebar() {
   const router = useRouter()
   
   const [isConfirmingLogout, setIsConfirmingLogout] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   if (pathname === '/login' || pathname === '/') return null
 
@@ -27,7 +28,8 @@ export function Sidebar() {
     router.push('/')
   }
 
-  return (
+  // Desktop Sidebar
+  const DesktopSidebar = () => (
     <div className="hidden md:flex flex-col w-64 bg-slate-900 text-white min-h-screen p-4">
       <div className="mb-8 p-2">
         <h1 className="text-xl font-bold">Job Match <span className="text-blue-400">AI</span></h1>
@@ -93,5 +95,89 @@ export function Sidebar() {
         </button>
       </div>
     </div>
+  )
+
+  // Mobile Top Navigation
+  const MobileNavbar = () => (
+    <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-slate-900 text-white border-b border-slate-800">
+      <div className="flex items-center justify-between px-4 py-3">
+        <h1 className="text-lg font-bold">Job Match <span className="text-blue-400">AI</span></h1>
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="p-2 hover:bg-slate-800 rounded-lg transition-colors"
+        >
+          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </div>
+
+      {/* Mobile Menu Dropdown */}
+      {isMobileMenuOpen && (
+        <div className="border-t border-slate-800 bg-slate-800 animate-in slide-in-from-top-2 fade-in duration-200">
+          <nav className="flex flex-col p-2">
+            {navItems.map((item) => {
+              const Icon = item.icon
+              const isActive = pathname === item.href
+              
+              return (
+                <Link 
+                  key={item.href} 
+                  href={item.href}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                    isActive 
+                      ? 'bg-blue-600 text-white' 
+                      : 'text-slate-400 hover:bg-slate-700 hover:text-white'
+                  }`}
+                >
+                  <Icon size={20} />
+                  <span className="font-medium">{item.name}</span>
+                </Link>
+              )
+            })}
+            
+            {/* Mobile Logout Button */}
+            <div className="mt-2 pt-2 border-t border-slate-700">
+              {isConfirmingLogout && (
+                <div className="bg-slate-700 p-2 rounded-lg mb-2 text-center">
+                  <p className="text-xs text-slate-300 mb-2">Are you sure?</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setIsConfirmingLogout(false)}
+                      className="flex-1 px-2 py-1 text-xs bg-slate-600 hover:bg-slate-500 rounded text-white transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      className="flex-1 px-2 py-1 text-xs bg-red-600 hover:bg-red-700 rounded text-white transition-colors"
+                    >
+                      Yes
+                    </button>
+                  </div>
+                </div>
+              )}
+              <button 
+                onClick={() => setIsConfirmingLogout(!isConfirmingLogout)}
+                className={`flex items-center gap-3 px-4 py-3 w-full rounded-lg transition-colors ${
+                   isConfirmingLogout 
+                     ? 'bg-slate-700 text-white' 
+                     : 'text-slate-400 hover:text-red-400 hover:bg-slate-700'
+                }`}
+              >
+                <LogOut size={20} />
+                <span>Logout</span>
+              </button>
+            </div>
+          </nav>
+        </div>
+      )}
+    </div>
+  )
+
+  return (
+    <>
+      <DesktopSidebar />
+      <MobileNavbar />
+    </>
   )
 }
