@@ -193,7 +193,7 @@ export default function ProfilePage() {
   if (loading) return <LoadingScreen />
 
   return (
-    <div ref={topRef} className="p-4 md:p-8 max-w-2xl md:max-w-4xl mx-auto pb-40 min-h-screen animate-in fade-in slide-in-from-bottom-4 duration-500 pt-20 md:pt-0">
+    <div ref={topRef} className="p-4 md:p-8 max-w-2xl md:max-w-4xl mx-auto pb-40 min-h-screen animate-in fade-in slide-in-from-bottom-4 duration-500 pt-20 md:pt-8">
       <h1 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8">My Profile</h1>
       
       <Card className="mb-8">
