@@ -143,8 +143,8 @@ export default function Dashboard() {
   if (loading) return <LoadingScreen />
   
   return (
-      <div className="p-8 max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">      
-      <div className="flex justify-between items-start">
+      <div className="p-4 md:p-8 max-w-2xl md:max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 pt-20 md:pt-8">
+      <div className="flex flex-col md:flex-row justify-between items-start gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">New Job Analysis</h1>
           <p className="text-slate-500 mt-1">Paste job details and get instant match</p>

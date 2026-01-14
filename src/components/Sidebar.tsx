@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, History, UserCircle, LogOut } from 'lucide-react'
+import { Home, History, UserCircle, LogOut, Menu, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -12,6 +12,7 @@ export function Sidebar() {
   const router = useRouter()
   
   const [isConfirmingLogout, setIsConfirmingLogout] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   if (pathname === '/login' || pathname === '/') return null
 
@@ -28,70 +29,171 @@ export function Sidebar() {
   }
 
   return (
-    <div className="hidden md:flex flex-col w-64 bg-slate-900 text-white min-h-screen p-4">
-      <div className="mb-8 p-2">
-        <h1 className="text-xl font-bold">Job Match <span className="text-blue-400">AI</span></h1>
-      </div>
-      
-      <nav className="flex-1 space-y-2">
-        {navItems.map((item) => {
-          const Icon = item.icon
-          const isActive = pathname === item.href
-          
-          return (
-            <Link 
-              key={item.href} 
-              href={item.href}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                isActive 
-                  ? 'bg-blue-600 text-white shadow-lg' 
-                  : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-              }`}
-            >
-              <Icon size={20} />
-              <span className="font-medium">{item.name}</span>
-            </Link>
-          )
-        })}
-      </nav>
-
-      {/* Logout area */}
-      <div className="mt-auto space-y-2">
+    <>
+      {/* --- Desktop Sidebar --- */}
+      <div className="hidden md:flex flex-col w-64 bg-slate-900 text-white min-h-screen p-4">
+        <div className="mb-8 p-2">
+          <h1 className="text-xl font-bold">Job Match <span className="text-blue-400">AI</span></h1>
+        </div>
         
-        {/* Confirmation bubble - appears only when clicking */}
-        {isConfirmingLogout && (
-          <div className="bg-slate-800 p-3 rounded-lg border border-slate-700 shadow-xl animate-in slide-in-from-bottom-2 fade-in duration-200 mb-2">
-            <p className="text-sm text-slate-300 mb-3 text-center">Are you sure?</p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setIsConfirmingLogout(false)}
-                className="flex-1 px-3 py-1.5 text-xs font-medium bg-slate-700 hover:bg-slate-600 rounded text-white transition-colors"
+        <nav className="flex-1 space-y-2">
+          {navItems.map((item) => {
+            const Icon = item.icon
+            const isActive = pathname === item.href
+            
+            return (
+              <Link 
+                key={item.href} 
+                href={item.href}
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                  isActive 
+                    ? 'bg-blue-600 text-white shadow-lg' 
+                    : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                }`}
               >
-                Cancel
-              </button>
-              <button
-                onClick={handleLogout}
-                className="flex-1 px-3 py-1.5 text-xs font-medium bg-red-600 hover:bg-red-700 rounded text-white transition-colors"
-              >
-                Yes
-              </button>
-            </div>
-          </div>
-        )}
+                <Icon size={20} />
+                <span className="font-medium">{item.name}</span>
+              </Link>
+            )
+          })}
+        </nav>
 
-        {/* Main logout button */}
-        <button 
-          onClick={() => setIsConfirmingLogout(!isConfirmingLogout)}
-          className={`flex items-center gap-3 px-4 py-3 w-full rounded-lg transition-colors ${
-             isConfirmingLogout 
-               ? 'bg-slate-800 text-white' 
-               : 'text-slate-400 hover:text-red-400 hover:bg-slate-800'
-          }`}
-        >
-          <LogOut size={20} />
-          <span>Logout</span>
-        </button>
+        <div className="mt-auto space-y-2">
+          {isConfirmingLogout && (
+            <div className="bg-slate-800 p-3 rounded-lg border border-slate-700 shadow-xl mb-2">
+              <p className="text-sm text-slate-300 mb-3 text-center">Are you sure?</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setIsConfirmingLogout(false)}
+                  className="flex-1 px-3 py-1.5 text-xs font-medium bg-slate-700 hover:bg-slate-600 rounded text-white transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="flex-1 px-3 py-1.5 text-xs font-medium bg-red-600 hover:bg-red-700 rounded text-white transition-colors"
+                >
+                  Yes
+                </button>
+              </div>
+            </div>
+          )}
+
+          <button 
+            onClick={() => setIsConfirmingLogout(!isConfirmingLogout)}
+            className={`flex items-center gap-3 px-4 py-3 w-full rounded-lg transition-colors ${
+               isConfirmingLogout 
+                 ? 'bg-slate-800 text-white' 
+                 : 'text-slate-400 hover:text-red-400 hover:bg-slate-800'
+            }`}
+          >
+            <LogOut size={20} />
+            <span>Logout</span>
+          </button>
+        </div>
       </div>
-    </div>
+
+      {/* --- Mobile Top Navigation --- */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-slate-900 text-white border-b border-slate-800">
+        <div className="flex items-center justify-between px-4 py-3 bg-slate-900 relative z-20">
+          <h1 className="text-lg font-bold">Job Match <span className="text-blue-400">AI</span></h1>
+          
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="relative w-10 h-10 flex items-center justify-center rounded-lg hover:bg-slate-800 transition-colors"
+            aria-label="Toggle menu"
+          >
+            <div className="relative w-6 h-6">
+              <Menu 
+                size={24} 
+                className="absolute top-0 left-0 transition-all duration-300 ease-in-out"
+                style={{
+                  opacity: isMobileMenuOpen ? 0 : 1,
+                  transform: isMobileMenuOpen ? 'rotate(90deg) scale(0.5)' : 'rotate(0deg) scale(1)'
+                }}
+              />
+              <X 
+                size={24} 
+                className="absolute top-0 left-0 transition-all duration-300 ease-in-out"
+                style={{
+                  opacity: isMobileMenuOpen ? 1 : 0,
+                  transform: isMobileMenuOpen ? 'rotate(0deg) scale(1)' : 'rotate(-90deg) scale(0.5)'
+                }}
+              />
+            </div>
+          </button>
+        </div>
+
+        {/* אנימציית הגריד - מוטמעת ישירות ללא קומפוננטה עוטפת שבורה */}
+        <div 
+          className="bg-slate-800 border-slate-700"
+          style={{
+            display: 'grid',
+            gridTemplateRows: isMobileMenuOpen ? '1fr' : '0fr',
+            transition: 'grid-template-rows 500ms ease-in-out, border-bottom-width 500ms ease-in-out',
+            borderBottomWidth: isMobileMenuOpen ? '1px' : '0px'
+          }}
+        >
+          {/* ה-DIV הפנימי הזה קריטי לאנימציה */}
+          <div style={{ overflow: 'hidden' }}>
+            <nav className="flex flex-col p-4 space-y-2">
+              {navItems.map((item) => {
+                const Icon = item.icon
+                const isActive = pathname === item.href
+                
+                return (
+                  <Link 
+                    key={item.href} 
+                    href={item.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                      isActive 
+                        ? 'bg-blue-600 text-white' 
+                        : 'text-slate-400 hover:bg-slate-700 hover:text-white'
+                    }`}
+                  >
+                    <Icon size={20} />
+                    <span className="font-medium">{item.name}</span>
+                  </Link>
+                )
+              })}
+              
+              <div className="mt-4 pt-4 border-t border-slate-700">
+                {isConfirmingLogout && (
+                  <div className="bg-slate-700 p-3 rounded-lg mb-3 text-center">
+                    <p className="text-sm text-slate-300 mb-3">Are you sure?</p>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => setIsConfirmingLogout(false)}
+                        className="flex-1 py-2 text-xs font-bold bg-slate-600 hover:bg-slate-500 rounded text-white"
+                      >
+                        CANCEL
+                      </button>
+                      <button
+                        onClick={handleLogout}
+                        className="flex-1 py-2 text-xs font-bold bg-red-600 hover:bg-red-700 rounded text-white"
+                      >
+                        YES
+                      </button>
+                    </div>
+                  </div>
+                )}
+                <button 
+                  onClick={() => setIsConfirmingLogout(!isConfirmingLogout)}
+                  className={`flex items-center gap-3 px-4 py-3 w-full rounded-lg transition-colors ${
+                     isConfirmingLogout 
+                       ? 'bg-slate-700 text-white' 
+                       : 'text-slate-400 hover:text-red-400 hover:bg-slate-700'
+                  }`}
+                >
+                  <LogOut size={20} />
+                  <span>Logout</span>
+                </button>
+              </div>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </>
   )
 }

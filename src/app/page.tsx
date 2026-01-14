@@ -49,9 +49,9 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       <main className="flex-1">
-        <section className="py-20 px-6 text-center bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
-          <div className="max-w-4xl mx-auto space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-sm font-medium border border-blue-100">
+        <section className="py-12 md:py-20 px-4 md:px-6 text-center bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
+          <div className="max-w-2xl md:max-w-4xl mx-auto space-y-4 md:space-y-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs md:text-sm font-medium border border-blue-100">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
@@ -59,18 +59,18 @@ export default function LandingPage() {
               Powered by GPT-4o
             </div>
             
-            <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight">
+            <h1 className="text-3xl md:text-5xl lg:text-7xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight">
               Optimize your resume for <br/>
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">every single job</span>
             </h1>
             
-            <p className="text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-base md:text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed">
               Stop sending generic resumes. Our AI analyzes the job description, finds your missing skills, creates a custom learning path, and generates a tailored PDF resume instantly.
             </p>
 
-            <div className="pt-8 flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="pt-6 md:pt-8 flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/login">
-                <Button size="lg" className="h-14 px-8 text-lg rounded-full bg-blue-600 hover:bg-blue-700 shadow-xl shadow-blue-500/20 transition-all hover:scale-105">
+                <Button size="lg" className="h-12 md:h-14 px-6 md:px-8 text-base md:text-lg rounded-full bg-blue-600 hover:bg-blue-700 shadow-xl shadow-blue-500/20 transition-all hover:scale-105 w-full sm:w-auto">
                   Start Analyzing Free <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
@@ -79,10 +79,10 @@ export default function LandingPage() {
         </section>
 
         {/* Features Grid */}
-        <section className="py-24 px-6 bg-white dark:bg-slate-950">
-          <div className="max-w-6xl mx-auto">
-            <h2 className="text-3xl font-bold text-center mb-16 text-slate-900 dark:text-white">Everything you need to get hired</h2>
-            <div className="grid md:grid-cols-3 gap-8">
+        <section className="py-16 md:py-24 px-4 md:px-6 bg-white dark:bg-slate-950">
+          <div className="max-w-4xl md:max-w-6xl mx-auto">
+            <h2 className="text-2xl md:text-3xl font-bold text-center mb-12 md:mb-16 text-slate-900 dark:text-white">Everything you need to get hired</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
               <FeatureCard 
                 icon={<TrendingUp size={32} className="text-green-500" />}
                 title="Smart Match Score" 
@@ -113,12 +113,12 @@ export default function LandingPage() {
 
 function FeatureCard({ icon, title, desc }: { icon: any, title: string, desc: string }) {
   return (
-    <div className="p-8 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-      <div className="bg-white dark:bg-slate-800 w-14 h-14 rounded-xl flex items-center justify-center mb-6 shadow-sm">
+    <div className="p-6 md:p-8 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+      <div className="bg-white dark:bg-slate-800 w-12 md:w-14 h-12 md:h-14 rounded-xl flex items-center justify-center mb-4 md:mb-6 shadow-sm">
         {icon}
       </div>
-      <h3 className="font-bold text-xl mb-3 text-slate-900 dark:text-white">{title}</h3>
-      <p className="text-slate-600 dark:text-slate-400 leading-relaxed">{desc}</p>
+      <h3 className="font-bold text-lg md:text-xl mb-2 md:mb-3 text-slate-900 dark:text-white">{title}</h3>
+      <p className="text-sm md:text-base text-slate-600 dark:text-slate-400 leading-relaxed">{desc}</p>
     </div>
   )
 }
