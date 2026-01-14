@@ -24,14 +24,14 @@ export function Sidebar() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
-    setIsConfirmingLogout(!isConfirmingLogout)
+    setIsConfirmingLogout(false) // איפוס הבועה
     router.push('/')
   }
 
   return (
     <>
       {/* --- Desktop Sidebar --- */}
-      <div className="hidden md:flex flex-col w-64 bg-slate-900 text-white min-h-screen p-4">
+      <div className="hidden md:flex flex-col w-64 bg-slate-900 text-white h-screen sticky top-0 p-4">
         <div className="mb-8 p-2">
           <h1 className="text-xl font-bold">Job Match <span className="text-blue-400">AI</span></h1>
         </div>
@@ -58,9 +58,10 @@ export function Sidebar() {
           })}
         </nav>
 
+        {/* האזור הזה תמיד יהיה בתחתית המסך עכשיו */}
         <div className="mt-auto space-y-2">
           {isConfirmingLogout && (
-            <div className="bg-slate-800 p-3 rounded-lg border border-slate-700 shadow-xl mb-2">
+            <div className="bg-slate-800 p-3 rounded-lg border border-slate-700 shadow-xl mb-2 animate-in slide-in-from-bottom-2 fade-in">
               <p className="text-sm text-slate-300 mb-3 text-center">Are you sure?</p>
               <div className="flex gap-2">
                 <button
@@ -93,7 +94,7 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* --- Mobile Top Navigation --- */}
+      {/* --- Mobile Top Navigation (ללא שינוי, הוא עובד תקין) --- */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-slate-900 text-white border-b border-slate-800">
         <div className="flex items-center justify-between px-4 py-3 bg-slate-900 relative z-20">
           <h1 className="text-lg font-bold">Job Match <span className="text-blue-400">AI</span></h1>
@@ -124,7 +125,6 @@ export function Sidebar() {
           </button>
         </div>
 
-        {/* אנימציית הגריד - מוטמעת ישירות ללא קומפוננטה עוטפת שבורה */}
         <div 
           className="bg-slate-800 border-slate-700"
           style={{
@@ -134,7 +134,6 @@ export function Sidebar() {
             borderBottomWidth: isMobileMenuOpen ? '1px' : '0px'
           }}
         >
-          {/* ה-DIV הפנימי הזה קריטי לאנימציה */}
           <div style={{ overflow: 'hidden' }}>
             <nav className="flex flex-col p-4 space-y-2">
               {navItems.map((item) => {
@@ -160,7 +159,7 @@ export function Sidebar() {
               
               <div className="mt-4 pt-4 border-t border-slate-700">
                 {isConfirmingLogout && (
-                  <div className="bg-slate-700 p-3 rounded-lg mb-3 text-center">
+                  <div className="bg-slate-700 p-3 rounded-lg mb-3 text-center animate-in fade-in">
                     <p className="text-sm text-slate-300 mb-3">Are you sure?</p>
                     <div className="flex gap-3">
                       <button
