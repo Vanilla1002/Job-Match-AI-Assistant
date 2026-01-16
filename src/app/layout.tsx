@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Sidebar } from '@/components/Sidebar'
 import { Toaster } from "@/components/ui/sonner" 
 import "./globals.css";
@@ -24,7 +25,8 @@ export default function RootLayout({
           <main className="flex-1 overflow-y-auto w-full">
             {children}
           </main>
-          <Toaster position="top-center" richColors /> 
+          <Toaster position="top-center" richColors />
+          <SpeedInsights />
         </div>
       </body>
     </html>
