@@ -167,9 +167,9 @@ export default function ProfilePage() {
       
       const result = await response.json();
 
-      if (!response.ok) {
-        throw new Error(result.message || 'Failed to update profile');
-      }
+        if (!response.ok) {
+          throw new Error(result.error || result.message || 'Failed to update profile');
+        }
 
       setSavedResumeText(safeTextToSave);
       setLastUpdated(new Date().toISOString())
