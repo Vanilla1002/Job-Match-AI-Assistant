@@ -23,7 +23,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <div className="flex flex-col md:flex-row min-h-screen bg-slate-50 dark:bg-slate-950">
           <Sidebar />
-          <main className="flex-1 overflow-y-auto w-full px-4 py-4 md:px-8 md:py-8 xl:px-16 2xl:px-24 2xl:max-w-7xl mx-auto transition-all duration-300">
+          <main className="flex-1 overflow-y-auto w-full">
             {children}
             <SpeedInsights />
           </main>

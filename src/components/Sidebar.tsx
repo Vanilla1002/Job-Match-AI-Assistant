@@ -24,19 +24,19 @@ export function Sidebar() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
-    setIsConfirmingLogout(false) // איפוס הבועה
+    setIsConfirmingLogout(!isConfirmingLogout)
     router.push('/')
   }
 
   return (
     <>
       {/* --- Desktop Sidebar --- */}
-      <div className="hidden md:flex flex-col w-64 xl:w-80 2xl:w-96 bg-slate-900 text-white h-screen sticky top-0 p-4 xl:p-8 2xl:p-10 transition-all duration-300">
-        <div className="mb-8 p-2 xl:p-4">
-          <h1 className="text-xl xl:text-2xl 2xl:text-3xl font-bold">Job Match <span className="text-blue-400">AI</span></h1>
+      <div className="hidden md:flex flex-col w-64 bg-slate-900 text-white min-h-screen p-4">
+        <div className="mb-8 p-2">
+          <h1 className="text-xl font-bold">Job Match <span className="text-blue-400">AI</span></h1>
         </div>
         
-        <nav className="flex-1 space-y-2 xl:space-y-4">
+        <nav className="flex-1 space-y-2">
           {navItems.map((item) => {
             const Icon = item.icon
             const isActive = pathname === item.href
@@ -45,23 +45,22 @@ export function Sidebar() {
               <Link 
                 key={item.href} 
                 href={item.href}
-                className={`flex items-center gap-3 px-4 py-3 xl:px-6 xl:py-4 2xl:px-8 2xl:py-5 rounded-lg transition-colors text-base xl:text-lg 2xl:text-xl ${
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                   isActive 
                     ? 'bg-blue-600 text-white shadow-lg' 
                     : 'text-slate-400 hover:bg-slate-800 hover:text-white'
                 }`}
               >
-                <Icon size={24} className="xl:w-7 xl:h-7 2xl:w-8 2xl:h-8" />
+                <Icon size={20} />
                 <span className="font-medium">{item.name}</span>
               </Link>
             )
           })}
         </nav>
 
-        {/* האזור הזה תמיד יהיה בתחתית המסך עכשיו */}
-        <div className="mt-auto space-y-2 xl:space-y-4">
+        <div className="mt-auto space-y-2">
           {isConfirmingLogout && (
-            <div className="bg-slate-800 p-3 rounded-lg border border-slate-700 shadow-xl mb-2 animate-in slide-in-from-bottom-2 fade-in">
+            <div className="bg-slate-800 p-3 rounded-lg border border-slate-700 shadow-xl mb-2">
               <p className="text-sm text-slate-300 mb-3 text-center">Are you sure?</p>
               <div className="flex gap-2">
                 <button
@@ -82,19 +81,19 @@ export function Sidebar() {
 
           <button 
             onClick={() => setIsConfirmingLogout(!isConfirmingLogout)}
-            className={`flex items-center gap-3 px-4 py-3 xl:px-6 xl:py-4 2xl:px-8 2xl:py-5 w-full rounded-lg transition-colors text-base xl:text-lg 2xl:text-xl ${
+            className={`flex items-center gap-3 px-4 py-3 w-full rounded-lg transition-colors ${
                isConfirmingLogout 
                  ? 'bg-slate-800 text-white' 
                  : 'text-slate-400 hover:text-red-400 hover:bg-slate-800'
             }`}
           >
-            <LogOut size={24} className="xl:w-7 xl:h-7 2xl:w-8 2xl:h-8" />
+            <LogOut size={20} />
             <span>Logout</span>
           </button>
         </div>
       </div>
 
-      {/* --- Mobile Top Navigation (ללא שינוי, הוא עובד תקין) --- */}
+      {/* --- Mobile Top Navigation --- */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-slate-900 text-white border-b border-slate-800">
         <div className="flex items-center justify-between px-4 py-3 bg-slate-900 relative z-20">
           <h1 className="text-lg font-bold">Job Match <span className="text-blue-400">AI</span></h1>
@@ -125,6 +124,7 @@ export function Sidebar() {
           </button>
         </div>
 
+        {/* אנימציית הגריד - מוטמעת ישירות ללא קומפוננטה עוטפת שבורה */}
         <div 
           className="bg-slate-800 border-slate-700"
           style={{
@@ -134,6 +134,7 @@ export function Sidebar() {
             borderBottomWidth: isMobileMenuOpen ? '1px' : '0px'
           }}
         >
+          {/* ה-DIV הפנימי הזה קריטי לאנימציה */}
           <div style={{ overflow: 'hidden' }}>
             <nav className="flex flex-col p-4 space-y-2">
               {navItems.map((item) => {
@@ -159,7 +160,7 @@ export function Sidebar() {
               
               <div className="mt-4 pt-4 border-t border-slate-700">
                 {isConfirmingLogout && (
-                  <div className="bg-slate-700 p-3 rounded-lg mb-3 text-center animate-in fade-in">
+                  <div className="bg-slate-700 p-3 rounded-lg mb-3 text-center">
                     <p className="text-sm text-slate-300 mb-3">Are you sure?</p>
                     <div className="flex gap-3">
                       <button
