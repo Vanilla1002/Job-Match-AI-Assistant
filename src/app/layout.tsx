@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Inter } from "next/font/google";
 import { Sidebar } from '@/components/Sidebar'
 import { Toaster } from "@/components/ui/sonner" 
 import "./globals.css";
+
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,6 +25,7 @@ export default function RootLayout({
           <Sidebar />
           <main className="flex-1 overflow-y-auto w-full">
             {children}
+            <SpeedInsights />
           </main>
           <Toaster position="top-center" richColors /> 
         </div>
