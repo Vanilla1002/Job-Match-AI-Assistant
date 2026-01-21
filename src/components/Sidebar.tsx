@@ -24,19 +24,20 @@ export function Sidebar() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
-    setIsConfirmingLogout(false) // איפוס הבועה
+    setIsConfirmingLogout(false)
     router.push('/')
   }
 
   return (
     <>
       {/* --- Desktop Sidebar --- */}
-      <div className="hidden md:flex flex-col w-64 xl:w-80 2xl:w-96 bg-slate-900 text-white h-screen sticky top-0 p-4 xl:p-8 2xl:p-10 transition-all duration-300">
-        <div className="mb-8 p-2 xl:p-4">
-          <h1 className="text-xl xl:text-2xl 2xl:text-3xl font-bold">Job Match <span className="text-blue-400">AI</span></h1>
+      {/* שינוי: הוספנו xl:w-72 ו-2xl:w-80 וגם הגדלנו פונטים */}
+      <div className="hidden md:flex flex-col w-64 xl:w-72 2xl:w-80 bg-slate-900 text-white h-screen sticky top-0 p-4 2xl:p-6 transition-all duration-300">
+        <div className="mb-8 p-2">
+          <h1 className="text-xl 2xl:text-3xl font-bold">Job Match <span className="text-blue-400">AI</span></h1>
         </div>
         
-        <nav className="flex-1 space-y-2 xl:space-y-4">
+        <nav className="flex-1 space-y-2 2xl:space-y-4">
           {navItems.map((item) => {
             const Icon = item.icon
             const isActive = pathname === item.href
@@ -45,34 +46,34 @@ export function Sidebar() {
               <Link 
                 key={item.href} 
                 href={item.href}
-                className={`flex items-center gap-3 px-4 py-3 xl:px-6 xl:py-4 2xl:px-8 2xl:py-5 rounded-lg transition-colors text-base xl:text-lg 2xl:text-xl ${
+                className={`flex items-center gap-3 px-4 py-3 2xl:py-4 rounded-lg transition-colors ${
                   isActive 
                     ? 'bg-blue-600 text-white shadow-lg' 
                     : 'text-slate-400 hover:bg-slate-800 hover:text-white'
                 }`}
               >
-                <Icon size={24} className="xl:w-7 xl:h-7 2xl:w-8 2xl:h-8" />
-                <span className="font-medium">{item.name}</span>
+                {/* הגדלת האייקונים והטקסט במסכים גדולים */}
+                <Icon size={20} className="2xl:w-6 2xl:h-6" />
+                <span className="font-medium 2xl:text-lg">{item.name}</span>
               </Link>
             )
           })}
         </nav>
 
-        {/* האזור הזה תמיד יהיה בתחתית המסך עכשיו */}
-        <div className="mt-auto space-y-2 xl:space-y-4">
+        <div className="mt-auto space-y-2 2xl:space-y-4">
           {isConfirmingLogout && (
-            <div className="bg-slate-800 p-3 rounded-lg border border-slate-700 shadow-xl mb-2 animate-in slide-in-from-bottom-2 fade-in">
-              <p className="text-sm text-slate-300 mb-3 text-center">Are you sure?</p>
+            <div className="bg-slate-800 p-3 2xl:p-5 rounded-lg border border-slate-700 shadow-xl mb-2 animate-in slide-in-from-bottom-2 fade-in">
+              <p className="text-sm 2xl:text-base text-slate-300 mb-3 text-center">Are you sure?</p>
               <div className="flex gap-2">
                 <button
                   onClick={() => setIsConfirmingLogout(false)}
-                  className="flex-1 px-3 py-1.5 text-xs font-medium bg-slate-700 hover:bg-slate-600 rounded text-white transition-colors"
+                  className="flex-1 px-3 py-1.5 2xl:py-2 text-xs 2xl:text-sm font-medium bg-slate-700 hover:bg-slate-600 rounded text-white transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleLogout}
-                  className="flex-1 px-3 py-1.5 text-xs font-medium bg-red-600 hover:bg-red-700 rounded text-white transition-colors"
+                  className="flex-1 px-3 py-1.5 2xl:py-2 text-xs 2xl:text-sm font-medium bg-red-600 hover:bg-red-700 rounded text-white transition-colors"
                 >
                   Yes
                 </button>
@@ -82,19 +83,19 @@ export function Sidebar() {
 
           <button 
             onClick={() => setIsConfirmingLogout(!isConfirmingLogout)}
-            className={`flex items-center gap-3 px-4 py-3 xl:px-6 xl:py-4 2xl:px-8 2xl:py-5 w-full rounded-lg transition-colors text-base xl:text-lg 2xl:text-xl ${
+            className={`flex items-center gap-3 px-4 py-3 2xl:py-4 w-full rounded-lg transition-colors ${
                isConfirmingLogout 
                  ? 'bg-slate-800 text-white' 
                  : 'text-slate-400 hover:text-red-400 hover:bg-slate-800'
             }`}
           >
-            <LogOut size={24} className="xl:w-7 xl:h-7 2xl:w-8 2xl:h-8" />
-            <span>Logout</span>
+            <LogOut size={20} className="2xl:w-6 2xl:h-6" />
+            <span className="2xl:text-lg">Logout</span>
           </button>
         </div>
       </div>
 
-      {/* --- Mobile Top Navigation (ללא שינוי, הוא עובד תקין) --- */}
+      {/* --- Mobile Top Navigation (ללא שינוי) --- */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-slate-900 text-white border-b border-slate-800">
         <div className="flex items-center justify-between px-4 py-3 bg-slate-900 relative z-20">
           <h1 className="text-lg font-bold">Job Match <span className="text-blue-400">AI</span></h1>

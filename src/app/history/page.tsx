@@ -14,16 +14,9 @@ export default function HistoryPage() {
   useEffect(() => {
     const loadHistory = async () => {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.push('/login')
-        return
-      }
+      if (!user) { router.push('/login'); return }
 
-      const { data } = await supabase
-        .from('job_analyses')
-        .select('*')
-        .order('created_at', { ascending: false })
-      
+      const { data } = await supabase.from('job_analyses').select('*').order('created_at', { ascending: false })
       if (data) setHistory(data)
       setLoading(false)
     }
@@ -33,10 +26,11 @@ export default function HistoryPage() {
   if (loading) return <LoadingScreen />
 
   return (
-    <div className="p-4 md:p-8 max-w-2xl md:max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 pt-20 md:pt-8">
-      <h1 className="text-2xl md:text-3xl font-bold mb-6">Analysis History</h1>
-      <div className="grid gap-4 md:gap-6">
-        {history.length === 0 && <p>No saved analyses yet.</p>}
+    // שינוי: max-w-5xl/6xl/7xl
+    <div className="p-4 md:p-8 2xl:p-12 max-w-2xl md:max-w-5xl xl:max-w-6xl 2xl:max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 pt-20 md:pt-8 transition-all">
+      <h1 className="text-2xl md:text-3xl 2xl:text-5xl font-bold mb-6 2xl:mb-10">Analysis History</h1>
+      <div className="grid gap-4 md:gap-6 2xl:gap-8">
+        {history.length === 0 && <p className="2xl:text-xl">No saved analyses yet.</p>}
         {history.map((item) => (
           <AnalysisResult 
             key={item.id}
