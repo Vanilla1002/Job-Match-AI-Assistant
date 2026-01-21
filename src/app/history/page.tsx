@@ -26,7 +26,7 @@ export default function HistoryPage() {
   if (loading) return <LoadingScreen />
 
   return (
-    // שינוי: max-w-5xl/6xl/7xl
+    // change: max-w-5xl/6xl/7xl
     <div className="p-4 md:p-8 2xl:p-12 max-w-2xl md:max-w-5xl xl:max-w-6xl 2xl:max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 pt-20 md:pt-8 transition-all">
       <h1 className="text-2xl md:text-3xl 2xl:text-5xl font-bold mb-6 2xl:mb-10">Analysis History</h1>
       <div className="grid gap-4 md:gap-6 2xl:gap-8">

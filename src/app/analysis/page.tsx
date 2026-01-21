@@ -98,7 +98,6 @@ export default function Dashboard() {
   if (loading) return <LoadingScreen />
   
   return (
-      // שינוי: הרחבת הקונטיינר למסכים גדולים
       <div className="p-4 md:p-8 2xl:p-12 max-w-2xl md:max-w-5xl xl:max-w-6xl 2xl:max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 pt-20 md:pt-8 transition-all">      
       <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-8">
         <div>
