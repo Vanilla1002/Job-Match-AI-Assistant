@@ -178,7 +178,7 @@ export function AnalysisResult({
         </div>
 
         <div className="bg-slate-50 p-4 rounded-md mb-4 border border-slate-100">
-            <p className="text-sm text-gray-700 leading-relaxed" dir="rtl">
+            <p className="text-sm text-gray-700 leading-relaxed" dir="ltr">
                 {summary}
             </p>
         </div>
