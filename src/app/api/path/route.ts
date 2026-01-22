@@ -10,15 +10,15 @@ export async function POST(req: Request) {
   try {
     const { analysisId, missingKeywords, jobTitle, jobDescription } = await req.json();
 
-    // 1. הפעלת ה-AI
+    
     const learningPath = await generateLearningPath(missingKeywords, jobTitle, jobDescription);
 
-    // 2. שמירת התוצאה בבסיס הנתונים (כדי שבהיסטוריה זה כבר יופיע מוכן)
+    
     const { error } = await supabase
       .from('job_analyses')
       .update({ learning_path: learningPath })
       .eq('id', analysisId)
-      .eq('user_id', user.id); // אבטחה: לוודא שזה הניתוח של המשתמש הזה
+      .eq('user_id', user.id); 
 
     if (error) throw error;
 
