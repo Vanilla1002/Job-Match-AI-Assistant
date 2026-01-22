@@ -38,7 +38,7 @@ export default function LandingPage() {
             <Link href="/login">
               <Button variant="ghost" className="text-slate-600">Log in</Button>
             </Link>
-            <Link href="/login">
+            <Link href="/login?mode=signup">
               <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6">
                 Get Started
               </Button>
@@ -69,7 +69,7 @@ export default function LandingPage() {
             </p>
 
             <div className="pt-6 md:pt-8 flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/login">
+              <Link href="/login?mode=signup">
                 <Button size="lg" className="h-12 md:h-14 px-6 md:px-8 text-base md:text-lg rounded-full bg-blue-600 hover:bg-blue-700 shadow-xl shadow-blue-500/20 transition-all hover:scale-105 w-full sm:w-auto">
                   Start Analyzing Free <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>

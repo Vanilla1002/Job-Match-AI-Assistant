@@ -1,11 +1,11 @@
 'use client' 
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { supabase } from '@/lib/supabase'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Mail, Lock, Loader2, ArrowRight, UserPlus, LogIn } from 'lucide-react'
 
-export default function LoginPage() {
+function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -14,6 +14,7 @@ export default function LoginPage() {
   const [isSignUpMode, setIsSignUpMode] = useState(false)
   const [checkingAuth, setCheckingAuth] = useState(true)
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   useEffect(() => {
     const checkUser = async () => {
@@ -24,7 +25,12 @@ export default function LoginPage() {
       } catch (error) { setCheckingAuth(false) }
     }
     checkUser()
-  }, [router])
+
+    const mode = searchParams.get('mode')
+    if (mode === 'signup') {
+      setIsSignUpMode(true)
+    }
+  }, [router, searchParams])
 
   const handleError = (msg: string) => {
     setError(msg); setSuccessMessage(null); setTimeout(() => setError(null), 4000)
@@ -55,8 +61,6 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen w-full bg-slate-950 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:14px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
-
-      
       <div className="w-full max-w-sm md:max-w-md 2xl:max-w-xl relative z-10">
         <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 md:p-8 2xl:p-12 space-y-6 md:space-y-8 transition-all duration-300">
           
@@ -116,5 +120,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen w-full bg-slate-950 flex items-center justify-center"><Loader2 className="h-8 w-8 text-blue-500 animate-spin" /></div>}>
+      <LoginForm />
+    </Suspense>
   )
 }
